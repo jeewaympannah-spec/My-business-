@@ -1,0 +1,405 @@
+<!-- Chosen Palette: Warm Neutrals (bg-gray-50) accented by a professional deep teal/cyan (Chart colors: #007B8A, #1C9F9A) for a calm, harmonious, and integrated feel. -->
+<!-- Gemini Integration: Added a button in Section 4 to generate a performance analysis and 3-point action plan in Urdu based on the dashboard's daily KPIs. -->
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>روزانہ ٹرانسپورٹ آپریشنز کا تجزیہ کار</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <!-- جمیل نوری نستعلیق فونٹ کے لیے گوگل فونٹ لنک شامل کریں -->
+    <!-- Noto Nastaliq Urdu is used as it provides wide support and resembles Jameel Noori Nastaleeq for web use. -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400..700&display=swap" rel="stylesheet">
+    <style>
+        /* نستعلیق فونٹ اور RTL سیٹنگز */
+        body {
+            /* Fallback کے ساتھ نوری نستعلیق سیٹ کریں */
+            font-family: 'Noto Nastaliq Urdu', 'Inter', sans-serif;
+            background-color: #f7fafc; 
+            text-align: right;
+            line-height: 1.8; /* بہتر پڑھنے کے لیے لائن ہائٹ */
+        }
+        h1, h2, h3 {
+            font-weight: 700; /* نستعلیق میں بولڈ ایفیکٹ کے لیے */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .data-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .data-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        .accent-color { color: #007B8A; }
+        .bg-accent { background-color: #007B8A; }
+        /* چارٹ کے گرافک اجزاء کو بائیں سے دائیں رہنے دیں */
+        canvas {
+            direction: ltr; 
+        }
+        /* LLM کے بٹن کے لیے سپارکل اینیمیشن */
+        @keyframes sparkle {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .sparkle-button {
+            animation: sparkle 1.5s infinite alternate;
+        }
+        /* لسٹ آئٹمز کو نستعلیق فونٹ میں بہتر دکھانے کے لیے */
+        #llm-output ul {
+            list-style-type: none; /* بلٹ کو ہٹائیں */
+            padding-right: 0;
+        }
+        #llm-output ul li {
+            position: relative;
+            padding-right: 1.5rem; /* بلٹ کے لیے جگہ */
+            margin-bottom: 0.5rem;
+        }
+        #llm-output ul li::before {
+            content: '●'; /* کسٹم بلٹ */
+            position: absolute;
+            right: 0;
+            top: 0;
+            color: #007B8A;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <header class="bg-white shadow-md sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center">
+            <h1 class="text-3xl font-extrabold text-gray-800 accent-color mb-2 md:mb-0">روزانہ ٹرانسپورٹ کا جائزہ</h1>
+            <div class="flex items-center space-x-4 md:space-x-reverse space-x-reverse">
+                <label for="date-selector" class="text-sm font-medium text-gray-600">دیکھنے کی تاریخ:</label>
+                <input type="date" id="date-selector" value="2025-10-24" class="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#007B8A] focus:border-[#007B8A] text-left">
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Section 1: Executive Summary -->
+        <section id="summary" class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-700 mb-6 border-b pb-2 accent-color">ایگزیکٹو خلاصہ: کلیدی کارکردگی کے اشاریے</h2>
+            <p class="text-gray-600 mb-6">یہ سیکشن منتخب دن کے لیے اہم آپریشنل میٹرکس کا فوری جائزہ فراہم کرتا ہے۔</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- KPI Card 1: Total Shipments -->
+                <div class="data-card bg-white p-6 rounded-xl shadow-lg border-r-4 border-[#007B8A] hover:border-teal-500">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-500">کل کھیپیں</span>
+                        <span class="text-xl accent-color">&#9889;</span>
+                    </div>
+                    <p id="kpi-shipments" class="text-4xl font-extrabold text-gray-800 mt-2">450</p>
+                    <p class="text-xs text-gray-500 mt-1">7 دن کی اوسط سے 5% زیادہ</p>
+                </div>
+
+                <!-- KPI Card 2: Total Revenue -->
+                <div class="data-card bg-white p-6 rounded-xl shadow-lg border-r-4 border-[#007B8A] hover:border-teal-500">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-500">کل آمدنی (امریکی ڈالر)</span>
+                        <span class="text-xl accent-color">&#36;</span>
+                    </div>
+                    <p id="kpi-revenue" class="text-4xl font-extrabold text-gray-800 mt-2">$18,500</p>
+                    <p class="text-xs text-gray-500 mt-1">ہدف حاصل کر لیا گیا</p>
+                </div>
+
+                <!-- KPI Card 3: Avg Delivery Time -->
+                <div class="data-card bg-white p-6 rounded-xl shadow-lg border-r-4 border-[#007B8A] hover:border-teal-500">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-500">اوسط ترسیل کا وقت (گھنٹے)</span>
+                        <span class="text-xl accent-color">&#9200;</span>
+                    </div>
+                    <p id="kpi-avg-time" class="text-4xl font-extrabold text-gray-800 mt-2">14.5 گھنٹے</p>
+                    <p class="text-xs text-red-500 mt-1">+1.2 گھنٹے (اوسط سے سست)</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Operational Breakdown & Regional Volume -->
+        <section id="operational-breakdown" class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-700 mb-6 border-b pb-2 accent-color">آپریشنل تجزیہ اور علاقائی توجہ</h2>
+            <p class="text-gray-600 mb-6">کھیپوں کی ان کی حیثیت اور بنیادی ٹرانسپورٹ موڈ کے لحاظ سے تقسیم کو دریافت کریں۔</p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Chart 1: Shipment Status (Donut Chart) -->
+                <div class="bg-white p-6 rounded-xl shadow-lg flex flex-col">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">کھیپ کی حیثیت کی تقسیم</h3>
+                    <p class="text-sm text-gray-500 mb-4">فیصد بریک ڈاؤن جو آپریشنل صحت کو ظاہر کرتا ہے۔</p>
+                    <div class="chart-container flex-grow">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Shipment Mode (Bar Chart) -->
+                <div class="bg-white p-6 rounded-xl shadow-lg flex flex-col">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">موڈ کے لحاظ سے کھیپ کا حجم</h3>
+                    <p class="text-sm text-gray-500 mb-4">سڑک، ریل، ہوائی، اور سمندری ٹرانسپورٹ کا حجم۔</p>
+                    <div class="chart-container flex-grow">
+                        <canvas id="modeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Financial Deep Dive & Regional Volume -->
+        <section id="financial-regional" class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-700 mb-6 border-b pb-2 accent-color">مالیاتی میٹرکس اور علاقائی کارکردگی</h2>
+            <p class="text-gray-600 mb-6">آپریشنل اور ایندھن کے اخراجات کے مقابلے میں آمدنی کا موازنہ کر کے روزانہ کے منافع کا تجزیہ کریں۔</p>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Regional Volume Chart -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg flex flex-col">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">علاقائی کھیپ کا حجم</h3>
+                    <p class="text-sm text-gray-500 mb-4">بنیادی ترسیل کے علاقے کے لحاظ سے درجہ بند کھیپیں (تفصیل کے لیے کسی بھی بار پر کلک کریں)۔</p>
+                    <div class="chart-container flex-grow">
+                        <canvas id="regionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Financial Toggle Panel -->
+                <div class="bg-white p-6 rounded-xl shadow-lg flex flex-col lg:col-span-1">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">روزانہ مالیاتی جائزہ</h3>
+                    <div class="flex justify-center mb-4 space-x-2 space-x-reverse p-1 rounded-lg bg-gray-100">
+                        <button id="btn-profit" class="toggle-btn bg-[#007B8A] text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-md transition duration-300">خالص منافع</button>
+                        <button id="btn-cost" class="toggle-btn text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-semibold transition duration-300">لاگت کا تجزیہ</button>
+                    </div>
+                    
+                    <div id="financial-content">
+                        <!-- Content will be dynamically updated by JS -->
+                    </div>
+
+                    <p class="text-sm text-gray-500 mt-4 pt-4 border-t">خالص منافع کا حساب لگایا جاتا ہے۔</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Key Insights & Recommendations (LLM Integrated Section) -->
+        <section id="insights" class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-700 mb-6 border-b pb-2 accent-color">جیمینائی لائیو تجزیہ اور ایکشن پلان</h2>
+            
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <!-- LLM Trigger Button -->
+                <button id="analyze-button" class="w-full bg-[#007B8A] text-white py-3 rounded-lg font-bold text-lg hover:bg-teal-600 transition duration-300 flex items-center justify-center space-x-2 space-x-reverse sparkle-button">
+                    <span>✨ کارکردگی کا تجزیہ اور پلان بنائیں</span>
+                </button>
+
+                <!-- Loading Indicator -->
+                <div id="loading-indicator" class="mt-4 hidden text-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#007B8A] inline-block"></div>
+                    <p class="text-gray-600 mt-2">جیمینائی آپ کے ڈیٹا کا تجزیہ کر رہا ہے...</p>
+                </div>
+
+                <!-- LLM Output Area -->
+                <div id="llm-output" class="mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">جیمینائی تجزیہ</h3>
+                    <p class="text-gray-600 text-sm">تجزیہ حاصل کرنے کے لیے اوپر والے بٹن پر کلک کریں۔ یہ ماڈل کلیدی میٹرکس کا جائزہ لے گا اور آپریشنل بہتری کے لیے ایک عملی منصوبہ تیار کرے گا۔</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Gemini API Constants
+        const apiKey = ""; // Leave this as-is; it will be provided at runtime
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+        // Mock Data (Used for the dashboard visuals and LLM input)
+        const data = {
+            shipments: 450,
+            revenue: 18500,
+            avgTime: 14.5, // The problem KPI
+            timeVariance: 1.2, // Hours slower than average
+            statusLabels: ['ڈیلیور ہو گئیں', 'تاخیر شدہ', 'زیر التواء'],
+            statusCounts: [382, 45, 23], 
+            modeLabels: ['سڑک', 'ریل', 'ہوائی', 'سمندری'],
+            modeCounts: [293, 90, 45, 22],
+            regionLabels: ['شمال', 'جنوب', 'مشرق', 'مغرب'],
+            regionCounts: [150, 120, 100, 80],
+            fuelCost: 4100,
+            opCost: 2800,
+            netProfit: 18500 - 4100 - 2800 // $11600
+        };
+
+        const chartColors = {
+            primary: '#007B8A',
+            secondary: '#1C9F9A',
+            delivered: '#059669',
+            delayed: '#EF4444',
+            pending: '#F59E0B',
+            background: ['#059669', '#EF4444', '#F59E0B']
+        };
+
+        // --- Core Application Setup ---
+
+        let statusChartInstance = null;
+        let modeChartInstance = null;
+        let regionChartInstance = null;
+        let currentFinancialView = 'profit';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeCharts();
+            setupFinancialToggle();
+            setupLLMAnalysis(); // Initialize the new feature
+            renderFinancialContent();
+        });
+
+        // --- Chart & UI Rendering ---
+
+        const wrapLabel = (label, maxChars = 16) => {
+            if (typeof label !== 'string' || label.length <= maxChars) return label;
+            const words = label.split(' ');
+            let line = '';
+            let lines = [];
+            words.forEach(word => {
+                if ((line + word).length > maxChars) {
+                    lines.push(line.trim());
+                    line = word + ' ';
+                } else {
+                    line += word + ' ';
+                }
+            });
+            lines.push(line.trim());
+            return lines;
+        };
+
+        const initializeCharts = () => {
+            // Chart 1: Shipment Status (Donut Chart)
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            statusChartInstance = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.statusLabels.map(l => wrapLabel(l)),
+                    datasets: [{
+                        data: data.statusCounts,
+                        backgroundColor: chartColors.background,
+                        borderColor: '#ffffff',
+                        borderWidth: 2,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' },
+                        tooltip: {
+                            rtl: true,
+                            callbacks: {
+                                title: (context) => context[0].label.replace(/,/g, ' '),
+                                label: (context) => {
+                                    const label = context.label || '';
+                                    if (label) {
+                                        let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        let currentValue = context.raw;
+                                        let percentage = Math.round((currentValue/total) * 100);
+                                        return `${label.replace(/,/g, ' ')}: ${currentValue} (${percentage}%)`;
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        title: { display: false }
+                    }
+                }
+            });
+
+            // Chart 2: Shipment Mode (Horizontal Bar Chart)
+            const modeCtx = document.getElementById('modeChart').getContext('2d');
+            modeChartInstance = new Chart(modeCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.modeLabels,
+                    datasets: [{
+                        label: 'کھیپیں',
+                        data: data.modeCounts,
+                        backgroundColor: chartColors.secondary,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: false },
+                        tooltip: { rtl: true }
+                    },
+                    scales: {
+                        x: { beginAtZero: true },
+                        y: { ticks: { autoSkip: false, mirror: true, padding: 0 } }
+                    }
+                }
+            });
+
+            // Chart 3: Regional Volume (Vertical Bar Chart)
+            const regionCtx = document.getElementById('regionChart').getContext('2d');
+            regionChartInstance = new Chart(regionCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.regionLabels,
+                    datasets: [{
+                        label: 'کھیپوں کی تعداد',
+                        data: data.regionCounts,
+                        backgroundColor: chartColors.primary,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: false },
+                        tooltip: { rtl: true }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const region = data.regionLabels[index];
+                            alertMessage(`علاقائی تفصیل:`, `${region} کے علاقے پر توجہ مرکوز کرتے ہوئے، جو ${data.regionCounts[index]} کھیپوں کا حامل ہے۔`);
+                        }
+                    }
+                }
+            });
+        };
+
+        const renderFinancialContent = () => {
+            const container = document.getElementById('financial-content');
+            let contentHTML = '';
+            const netProfit = data.netProfit;
+
+            if (currentFinancialView === 'profit') {
+                const profitColor = netProfit > 0 ? 'text-green-600' : 'text-red-600';
+                contentHTML = `
+                    <div class="p-4 bg-gray-50 rounded-lg text-center shadow-inner">
+                        <p class="text-sm font-medium text-gray-500">خالص روزانہ منافع</p>
+                        <p class="text-5xl font-extrabold ${profitColor} mt-1" dir="ltr">$${netProfit.toLocaleString()}</p>
+                    </div>
+                `;
+            } else {
+                contentHTML = `
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                            <span class="font-medium text-gray-700">کل آمدنی</span>
+                            <span class="text-lg font-bold text-gray-800" dir="ltr">$${data.revenue.toLocaleString()}</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-red-50 rounded-lg">
+                            <span class="font-medium text-red-700">ایندھن کی لاگت</span>
+                            <span class="text-lg font-bold text-red-600" dir="ltr">-$${data.fuelCost.toLocaleString()}</span>
+                        </div>
+                        <div class="flex justify-between items-ce
